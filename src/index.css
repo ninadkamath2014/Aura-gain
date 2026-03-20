@@ -1,0 +1,84 @@
+:root {
+  font-family: 'Avenir Next', 'Trebuchet MS', 'Segoe UI', sans-serif;
+  line-height: 1.5;
+  font-weight: 500;
+  color: #f7efe8;
+  background:
+    radial-gradient(circle at top, rgba(255, 119, 61, 0.12), transparent 28%),
+    linear-gradient(180deg, #120f19 0%, #19121b 55%, #0d1014 100%);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --text: #fff6ef;
+  --text-soft: #d4c6c0;
+  --muted: #a59790;
+  --accent: #ffb26d;
+  --accent-2: #5fe1d5;
+  --border: rgba(255, 255, 255, 0.08);
+  --panel: rgba(17, 18, 25, 0.88);
+  --panel-alt: rgba(23, 25, 33, 0.92);
+  --pill: rgba(255, 255, 255, 0.045);
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+body,
+button,
+h1,
+h2,
+h3,
+p,
+li {
+  margin-top: 0;
+}
+
+h1,
+h2,
+h3 {
+  font-family: 'Gill Sans', 'Trebuchet MS', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+h1 {
+  font-size: clamp(2.4rem, 5vw, 4.6rem);
+  line-height: 0.98;
+  margin-bottom: 14px;
+}
+
+h2 {
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  margin-bottom: 10px;
+}
+
+h3 {
+  font-size: 1.05rem;
+}
+
+p {
+  margin-bottom: 0;
+}
+
+button {
+  font-family: inherit;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
