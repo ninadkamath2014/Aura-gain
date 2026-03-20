@@ -3,6 +3,7 @@ import './App.css'
 
 const STORAGE_KEY = 'aura-gain-save-v2'
 const LEGACY_STORAGE_KEYS = ['aura-gain-save-v1']
+const ONBOARDING_STORAGE_KEY = 'aura-gain-onboarding-v1'
 
 const auraRanks = [
   { label: 'Hopeless', min: -10000 },
@@ -647,6 +648,25 @@ const starterLogs = [
   { id: 1, text: 'Spawned into existence with -10000 aura. Recovery arc begins now.' },
 ]
 
+const onboardingSteps = [
+  {
+    title: 'You Spawn With Negative Aura',
+    text: 'Your run begins in aura debt. The goal is to grind jobs, recover your status, and stop looking culturally unemployed.',
+  },
+  {
+    title: 'Work Shifts To Start The Comeback',
+    text: 'Tap Work Shift to earn money, move time forward, and trigger random events that can boost or damage your run.',
+  },
+  {
+    title: 'Buy Brainrots Carefully',
+    text: 'Starter brainrots help early, but weak ones turn cringe later. Upgrade your taste and clearance instead of spamming cheap flexes forever.',
+  },
+  {
+    title: 'Pass AI Interviews',
+    text: 'Better jobs pay more, but you need stronger aura and sharper answers to unlock them.',
+  },
+]
+
 function getAuraRank(aura) {
   let rank = auraRanks[0]
 
@@ -706,6 +726,14 @@ function loadGame() {
   }
 }
 
+function hasSeenOnboarding() {
+  if (typeof window === 'undefined') {
+    return false
+  }
+
+  return window.localStorage.getItem(ONBOARDING_STORAGE_KEY) === 'done'
+}
+
 function makePopup(label, value, type) {
   return {
     id: `${Date.now()}-${Math.random()}`,
@@ -740,6 +768,8 @@ function App() {
   const [activeTab, setActiveTab] = useState('overview')
   const [activeInterview, setActiveInterview] = useState(null)
   const [feedbackPopups, setFeedbackPopups] = useState([])
+  const [showTitleScreen, setShowTitleScreen] = useState(true)
+  const [onboardingStep, setOnboardingStep] = useState(hasSeenOnboarding() ? -1 : 0)
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(game))
@@ -770,6 +800,7 @@ function App() {
     0,
   )
   const nextJob = jobs.find((job) => !game.unlockedJobIds.includes(job.id))
+  const nextRank = auraRanks.find((rank) => rank.min > game.aura)
   const maxClearance = 7
   const clearanceUpgradeCost = game.clearance * 1100
   const clearanceUpgradeAura = game.clearance * 3500 - 2500
@@ -960,8 +991,90 @@ function App() {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh))
   }
 
+  function beginRun() {
+    setShowTitleScreen(false)
+  }
+
+  function advanceOnboarding() {
+    if (onboardingStep >= onboardingSteps.length - 1) {
+      setOnboardingStep(-1)
+      window.localStorage.setItem(ONBOARDING_STORAGE_KEY, 'done')
+      return
+    }
+
+    setOnboardingStep((previous) => previous + 1)
+  }
+
+  function dismissOnboarding() {
+    setOnboardingStep(-1)
+    window.localStorage.setItem(ONBOARDING_STORAGE_KEY, 'done')
+  }
+
   return (
-    <div className="app-shell">
+    <>
+      {showTitleScreen ? (
+        <section className="title-screen">
+          <div className="title-backdrop" />
+          <div className="title-card">
+            <p className="eyebrow">Aura Gain</p>
+            <h1>Turn a cursed reputation into infinite aura.</h1>
+            <p className="title-text">
+              Grind random jobs, survive AI interviews, collect elite brainrots, and climb from
+              social disaster to reality-distorting status.
+            </p>
+            <div className="title-stats">
+              <div className="title-stat">
+                <span>Starting aura</span>
+                <strong>-10000</strong>
+              </div>
+              <div className="title-stat">
+                <span>Live jobs</span>
+                <strong>{jobs.length}</strong>
+              </div>
+              <div className="title-stat">
+                <span>Brainrots</span>
+                <strong>{brainrots.length}</strong>
+              </div>
+            </div>
+            <div className="title-actions">
+              <button className="primary-button title-button" onClick={beginRun}>
+                {game.day > 1 || game.ownedBrainrotIds.length > 0 ? 'Continue Run' : 'Start Run'}
+              </button>
+              <button className="ghost-button" onClick={resetGame}>
+                Fresh Save
+              </button>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {onboardingStep >= 0 ? (
+        <div className="onboarding-overlay">
+          <div className="onboarding-card">
+            <p className="section-tag">First Run Guide</p>
+            <h2>{onboardingSteps[onboardingStep].title}</h2>
+            <p>{onboardingSteps[onboardingStep].text}</p>
+            <div className="onboarding-progress">
+              {onboardingSteps.map((step, index) => (
+                <span
+                  key={step.title}
+                  className={index === onboardingStep ? 'progress-dot active' : 'progress-dot'}
+                />
+              ))}
+            </div>
+            <div className="title-actions">
+              <button className="primary-button" onClick={advanceOnboarding}>
+                {onboardingStep === onboardingSteps.length - 1 ? 'Enter Game' : 'Next'}
+              </button>
+              <button className="ghost-button" onClick={dismissOnboarding}>
+                Skip
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="app-shell">
       <header className="hero-panel">
         <div className="hero-copy">
           <p className="eyebrow">Aura Gain</p>
@@ -995,9 +1108,25 @@ function App() {
         <div className="status-pill">Day {game.day}</div>
         <div className="status-pill">Shift aura {formatSigned(passiveAura + currentJob.shiftAura)}</div>
         <div className="status-pill">Shift money +${currentJob.pay + passiveIncomeBonus}</div>
+        <div className="status-pill">Rank {getAuraRank(game.aura)}</div>
         <button className="primary-button pulse" onClick={workShift}>
           Work Shift
         </button>
+      </section>
+
+      <section className="milestone-strip">
+        <div className="milestone-card">
+          <span>Current aura rank</span>
+          <strong>{getAuraRank(game.aura)}</strong>
+        </div>
+        <div className="milestone-card">
+          <span>Next rank target</span>
+          <strong>{nextRank ? `${formatSigned(nextRank.min)} aura` : 'Maxed out'}</strong>
+        </div>
+        <div className="milestone-card">
+          <span>Portfolio power</span>
+          <strong>{ownedBrainrots.reduce((total, brainrot) => total + brainrot.tier, 0)}</strong>
+        </div>
       </section>
 
       <div className="feedback-lane" aria-live="polite">
@@ -1358,7 +1487,8 @@ function App() {
           </article>
         </aside>
       </main>
-    </div>
+      </div>
+    </>
   )
 }
 
